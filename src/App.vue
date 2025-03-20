@@ -1,11 +1,25 @@
 <template>
+    <header>
+        MyFaceFramer
+    </header>
+
     <main>
         <!--
+        <img src="@/assets/stencil.webp" ref="stencil" class="preloaded-img" />
         <img src="@/assets/user.jpg" ref="userimg" class="preloaded-img" />
         -->
-        <img src="@/assets/stencil.webp" ref="stencil" class="preloaded-img" />
+        <img ref="stencil" class="preloaded-img" />
 
         <section v-if="!finished && !imageElement">
+            <h1>
+                Hello!
+            </h1>
+
+            <p>
+                Decorate your profile image with
+                a nice frame!
+            </p>
+
             <div class="btn custom-file">
                 <input type="file" accept="image/*" class="custom-file-input labeladjust" @change="onImageChanged"
                     id="customFilePre">
@@ -14,8 +28,16 @@
         </section>
 
         <section v-if="imageElement">
-            <AvaGen ref="avagen" :image="imageElement" :textOptions="textOptions" :image-options="imageOptions"
-                :canvas-options="canvasOptions" :mode="imageOptions.stencilImage ? 'mixed' : 'custom_circle'" />
+            <div v-if="presets && (presets.length > 1)">
+                Preset:<br />
+                <select v-model="selectedPreset">
+                    <option v-for="p in presets" :key="p.title" :value="p">{{ p.title }}</option>
+                </select>
+            </div>
+
+            <AvaGen class="avagen" ref="avagen" :image="imageElement" :textOptions="textOptions"
+                :image-options="imageOptions" :canvas-options="canvasOptions"
+                :mode="imageOptions.stencilImage ? 'mixed' : 'custom_circle'" />
 
             <div>
                 <a class="btn" @click.stop="onButtonClicked" :href="imageUrl" :download="downloadFileName">Download…</a>
@@ -27,13 +49,59 @@
         </section>
 
     </main>
+
+    <footer>
+        <span>
+        </span>
+
+        <span>
+            based on <a href="https://github.com/simmscmi/faceframer-mini" target="_blank">FaceFramer-mini</a>
+        </span>
+    </footer>
 </template>
 
 <style lang="scss" scoped>
-main {
-    text-align: center;
+a {
+    color: inherit;
 }
 
+header {
+    background-color: #004A96;
+    color: white;
+    border-bottom: solid 1px black;
+    padding: 0.5rem;
+    font-weight: bold;
+}
+
+main {
+    text-align: center;
+    flex-grow: 1;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+    overflow-y: auto;
+}
+
+footer {
+    display: flex;
+    background-color: #004A96;
+    color: white;
+    font-size: small;
+    justify-content: space-between;
+    padding-left: 1em;
+    padding-right: 1em;
+    border-top: solid 1px black;
+
+}
+
+article {
+    max-width: 30rem;
+}
+
+.avagen {
+    margin: 1rem;
+}
+
+select,
 .btn,
 .custom-file {
     text-decoration: none;
@@ -42,19 +110,19 @@ main {
     font: inherit;
     font-weight: bold;
     text-align: center;
-    background-color: #333;
+    background-color: #00793A;
     color: white;
     padding: 0.4em;
-    border-radius: 0.25em;
+    border-radius: 0.5em;
     border-color: transparent;
     padding-left: 1em;
     padding-right: 1em;
-    cursor: auto;
+    cursor: pointer;
 }
 
 .btn:hover {
-    background-color: #999;
-    color: black;
+    background-color: #65AC1E;
+    color: white;
 }
 
 .custom-file {
@@ -88,10 +156,13 @@ main {
 <script lang="ts">
 import { defineComponent } from 'vue';
 import AvaGen, { ICanvasOptions, IImageOptions, ITextOptions } from '@/components/AvaGen.vue';
+import { IPreset, presets } from '@/presets';
 
 export default defineComponent({
     name: "App",
     data: () => ({
+        presets,
+        selectedPreset: null as null | IPreset,
         finished: false,
         downloadFileName: "",
         imageUrl: "",
@@ -122,8 +193,15 @@ export default defineComponent({
             circleStrokeColor: "transparent",
             rot: 0,
         } as ICanvasOptions,
+        presetUrl: null as null | string,
     }),
+    created() {
+        this.getPresetUrlFromLocation();
+    },
     mounted() {
+        if (this.presets && this.presets.length) {
+            this.selectedPreset = this.presets[0];
+        }
         if (this.$refs.userimg) {
             this.imageElement = this.$refs.userimg as HTMLImageElement;
         }
@@ -132,6 +210,22 @@ export default defineComponent({
         }
     },
     methods: {
+        getPresetUrlFromLocation() {
+            const p = new URLSearchParams(document.location.search);
+            this.presetUrl = p.get("presetUrl");
+        },
+        loadPresetsFromSearchUrl() {
+            if (!this.presetUrl) return;
+            fetch(this.presetUrl, {
+                method: "GET",
+                cache: "no-cache",
+            })
+                .then(d => d.json())
+                .then((data) => {
+                    this.presets = data;
+                })
+                .catch(e => console.error(e));
+        },
         onButtonClicked() {
             this.downloadFileName = `avatar-${Date.now()}.png`;
             this.imageUrl = (this.$refs.avagen as typeof AvaGen).getImageDownloadUrl("image/png");
@@ -165,6 +259,35 @@ export default defineComponent({
             if (newV) {
                 this.imageElement = undefined;
             }
+        },
+        selectedPreset(newV: null | IPreset) {
+            if (!newV) return;
+            this.textOptions = { ...this.textOptions, ...newV.textOptions };
+            if (newV.canvasOptions) {
+                this.canvasOptions.circleStrokeColor = newV.canvasOptions.circleStrokeColor;
+                this.canvasOptions.circleStrokeWidth = newV.canvasOptions.circleStrokeWidth
+                this.canvasOptions.rot = newV.canvasOptions.rot;
+            }
+            if (newV.stencilUrl) {
+                (this.$refs.stencil as HTMLImageElement).src = newV.stencilUrl;
+            } else {
+                (this.$refs.stencil as HTMLImageElement).src = "";
+            }
+        },
+        "document.location.search"(newV, oldV) {
+            if (newV === oldV) return;
+            this.getPresetUrlFromLocation();
+        },
+        presetUrl(newV, oldV) {
+            if (newV == oldV) return;
+            this.loadPresetsFromSearchUrl();
+        },
+        presets(newV) {
+            this.selectedPreset = null;
+            if (!newV || (newV.length == 0)) {
+                return;
+            }
+            this.selectedPreset = newV[0];
         },
     },
     components: {
