@@ -1,5 +1,5 @@
 import { ITextOptions } from "./components/AvaGen.vue";
-import stencilUrl from "@/assets/stencil.webp";
+import stencilUrl from "@/assets/basf-stencil.webp?inline";
 
 interface IPreset {
     title: string;
@@ -14,15 +14,15 @@ interface IPreset {
 
 const presets: IPreset[] = [
     {
-        title: "DemoPreset",
+        title: "BasfPreset",
         textOptions: {
-            up: "I'm on top",
-            down: "… and I'm at the bottom!",
+            up: "",
+            down: "#OurPlasticsJourney",
             rotUp: 65,
-            rotDown: 28,
+            rotDown: 42,
             colorUp: "#ffffff",
             colorDown: "#ffffff",
-            fontName: "Arial",
+            fontName: "Helvetica",
             fontSize: 40,
         },
         stencilUrl: stencilUrl,
