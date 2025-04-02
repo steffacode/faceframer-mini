@@ -10,44 +10,78 @@
         -->
         <img ref="stencil" class="preloaded-img" />
 
-        <section v-if="!finished && !imageElement">
-            <h1>
-                Hello!
-            </h1>
+        <article>
 
-            <p>
-                Decorate your profile image with
-                a nice frame!
-            </p>
+            <section v-if="!finished && !imageElement">
+                <h1>
+                    Hello!
+                </h1>
 
-            <div class="btn custom-file">
-                <input type="file" accept="image/*" class="custom-file-input labeladjust" @change="onImageChanged"
-                    id="customFilePre">
-                <label class="custom-file-label labeladjust btn-primary" for="customFilePre">Select your image…</label>
-            </div>
-        </section>
+                <p>
+                    Decorate your profile image with
+                    a nice frame :)
+                </p>
 
-        <section v-if="imageElement">
-            <div v-if="presets && (presets.length > 1)">
-                Preset:<br />
-                <select v-model="selectedPreset">
-                    <option v-for="p in presets" :key="p.title" :value="p">{{ p.title }}</option>
-                </select>
-            </div>
+                <p>
+                    No registration, no login, no upload - just select your photo & choose the frame color that suits
+                    you!
+                </p>
 
-            <AvaGen class="avagen" ref="avagen" :image="imageElement" :textOptions="textOptions"
-                :image-options="imageOptions" :canvas-options="canvasOptions"
-                :mode="imageOptions.stencilImage ? 'mixed' : 'custom_circle'" />
+                <div class="btn custom-file">
+                    <input type="file" accept="image/*" class="custom-file-input labeladjust" @change="onImageChanged"
+                        id="customFilePre">
+                    <label class="custom-file-label labeladjust btn-primary" for="customFilePre">Select your
+                        image…</label>
+                </div>
+            </section>
 
-            <div>
-                <a class="btn" @click.stop="onButtonClicked" :href="imageUrl" :download="downloadFileName">Download…</a>
-            </div>
-        </section>
+            <section v-if="imageElement">
+                <div v-if="presets && (presets.length > 1)">
+                    Preset:<br />
+                    <select v-model="selectedPreset">
+                        <option v-for="p in presets" :key="p.title" :value="p">{{ p.title }}</option>
+                    </select>
+                </div>
 
-        <section v-if="finished">
-            Thank you! Your image has been downloaded.
-        </section>
+                <AvaGen class="avagen" ref="avagen" :image="imageElement" :textOptions="textOptions"
+                    :image-options="imageOptions" :canvas-options="canvasOptions"
+                    :mode="imageOptions.stencilImage ? 'mixed' : 'custom_circle'" />
 
+                <div>
+                    <p>
+                        Click and drag the picture to fit it to the frame.
+                    </p>
+
+                    <p>
+                        Hover over the picture and scroll (e.g., via mousewheel) to zoom in our out of the image.
+                    </p>
+
+                    <p>
+                        When you're happy with the result, click "download" to save it on your device.
+                    </p>
+
+                    <p>
+                        <a class="btn" id="download-btn" @click.stop="onButtonClicked" :href="imageUrl"
+                            :download="downloadFileName">Download…</a>
+                    </p>
+
+                    <p>
+                        If you'd like to frame another picture or start over, just reload the website.
+                    </p>
+                </div>
+            </section>
+
+            <section v-if="finished">
+                <p>
+                    Thank you! Your image has been downloaded.
+                </p>
+
+                <p>
+                    If you'd like to frame another picture, just reload the website.
+                </p>
+            </section>
+
+        </article>
     </main>
 
     <footer>
@@ -76,8 +110,8 @@ header {
 main {
     text-align: center;
     flex-grow: 1;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
+    padding-bottom: 1rem;
+    padding-top: 1rem;
     overflow-y: auto;
 }
 
@@ -94,7 +128,8 @@ footer {
 }
 
 article {
-    max-width: 30rem;
+    max-width: 50rem;
+    margin: auto;
 }
 
 .avagen {
@@ -144,6 +179,10 @@ select,
         z-index: 0;
         cursor: inherit;
     }
+}
+
+#download-btn {
+    margin: 1rem;
 }
 
 .preloaded-img {
